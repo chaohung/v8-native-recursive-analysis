@@ -78,7 +78,6 @@ void log(char const* name, unsigned int result, T duration) {
 int main(int argc, char* argv[]) {
     std::string input = read_file("input.js");
     char* num = getenv("FIBONACCI_NUM");
-    input += "fibonacci(" + std::string(num) + ");";
 
     char const* builtin_path = getenv("BUILTIN_PATH");
     v8::V8::InitializeICUDefaultLocation(builtin_path);
@@ -96,14 +95,31 @@ int main(int argc, char* argv[]) {
         v8::HandleScope handle_scope(isolate);
         v8::Local<v8::Context> context = v8::Context::New(isolate);
         v8::Context::Scope context_scope(context);
-        v8::Local<v8::String> source =
-            v8::String::NewFromUtf8(isolate, input.c_str(), v8::NewStringType::kNormal).ToLocalChecked();
-        v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
-
-        auto start_time = std::chrono::system_clock::now();
-        v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
-        auto end_time = std::chrono::system_clock::now();
-        log("v8 fibonacci", result->Uint32Value(), end_time - start_time);
+        {
+            v8::Local<v8::Context> context_sub(context);
+            std::string input_exec = input + "recursive_fibonacci(" + std::string(num) + ");";
+            v8::Local<v8::String> source =
+                v8::String::NewFromUtf8(isolate, input_exec.c_str(), v8::NewStringType::kNormal)
+                .ToLocalChecked();
+            v8::Local<v8::Script> script = v8::Script::Compile(context_sub, source).ToLocalChecked();
+            auto start_time = std::chrono::system_clock::now();
+            v8::Local<v8::Value> result = script->Run(context_sub).ToLocalChecked();
+            auto end_time = std::chrono::system_clock::now();
+            log("v8 recursive fibonacci", result->Uint32Value(), end_time - start_time);
+        }
+        printf("\n");
+        {
+            v8::Local<v8::Context> context_sub(context);
+            std::string input_exec = input + "tail_recursive_fibonacci(" + std::string(num) + ");";
+            v8::Local<v8::String> source =
+                v8::String::NewFromUtf8(isolate, input_exec.c_str(), v8::NewStringType::kNormal)
+                .ToLocalChecked();
+            v8::Local<v8::Script> script = v8::Script::Compile(context_sub, source).ToLocalChecked();
+            auto start_time = std::chrono::system_clock::now();
+            v8::Local<v8::Value> result = script->Run(context_sub).ToLocalChecked();
+            auto end_time = std::chrono::system_clock::now();
+            log("v8 tail recursive fibonacci", result->Uint32Value(), end_time - start_time);
+        }
     }
     printf("\n");
     {
