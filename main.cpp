@@ -63,6 +63,18 @@ std::string read_file(char const* path) {
     return buf;
 }
 
+template<typename T>
+void log(char const* name, unsigned int result, T duration) {
+    auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+    auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+    printf("%s\n", name);
+    printf("result: %u\n",  result);
+    printf("ms: %lld\n", ms);
+    printf("us: %lld\n", us);
+    printf("ns: %lld\n", ns);
+}
+
 int main(int argc, char* argv[]) {
     std::string input = read_file("input.js");
     char* num = getenv("FIBONACCI_NUM");
@@ -91,60 +103,28 @@ int main(int argc, char* argv[]) {
         auto start_time = std::chrono::system_clock::now();
         v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
         auto end_time = std::chrono::system_clock::now();
-        auto duration = end_time - start_time;
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-        auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
-        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-        printf("v8 fibonacci\n");
-        printf("result: %u\n",  result->Uint32Value());
-        printf("ms: %lld\n", ms);
-        printf("us: %lld\n", us);
-        printf("ns: %lld\n", ns);
+        log("v8 fibonacci", result->Uint32Value(), end_time - start_time);
     }
     printf("\n");
     {
         auto start_time = std::chrono::system_clock::now();
         int result = recursive_fibonacci(atoi(num));
         auto end_time = std::chrono::system_clock::now();
-        auto duration = end_time - start_time;
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-        auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
-        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-        printf("native recursive fibonacci\n");
-        printf("result: %u\n",  result);
-        printf("ms: %lld\n", ms);
-        printf("us: %lld\n", us);
-        printf("ns: %lld\n", ns);
+        log("native recursive fibonacci", result, end_time - start_time);
     }
     printf("\n");
     {
         auto start_time = std::chrono::system_clock::now();
         int result = tail_recursive_fibonacci(atoi(num));
         auto end_time = std::chrono::system_clock::now();
-        auto duration = end_time - start_time;
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-        auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
-        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-        printf("native tail recursive fibonacci\n");
-        printf("result: %u\n",  result);
-        printf("ms: %lld\n", ms);
-        printf("us: %lld\n", us);
-        printf("ns: %lld\n", ns);
+        log("native tail recursive fibonacci", result, end_time - start_time);
     }
     printf("\n");
     {
         auto start_time = std::chrono::system_clock::now();
         int result = loop_fibonacci(atoi(num));
         auto end_time = std::chrono::system_clock::now();
-        auto duration = end_time - start_time;
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-        auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
-        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-        printf("native loop fibonacci\n");
-        printf("result: %u\n",  result);
-        printf("ms: %lld\n", ms);
-        printf("us: %lld\n", us);
-        printf("ns: %lld\n", ns);
+        log("native loop fibonacci", result, end_time - start_time);
     }
 #ifdef FIBONACCI_NUM
     printf("\n");
@@ -152,15 +132,7 @@ int main(int argc, char* argv[]) {
         auto start_time = std::chrono::system_clock::now();
         int result = template_fibonacci<FIBONACCI_NUM>::value;
         auto end_time = std::chrono::system_clock::now();
-        auto duration = end_time - start_time;
-        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-        auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
-        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-        printf("native template fibonacci\n");
-        printf("result: %u\n",  result);
-        printf("ms: %lld\n", ms);
-        printf("us: %lld\n", us);
-        printf("ns: %lld\n", ns);
+        log("native template fibonacci", result, end_time - start_time);
     }
 #endif
 
