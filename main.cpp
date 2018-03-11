@@ -5,10 +5,25 @@
 #include "libplatform/libplatform.h"
 #include "v8.h"
 
-int fibonacci(int num) {
+template <int N>
+struct template_fibonacci {
+    enum { value = template_fibonacci<N-2>::value + template_fibonacci<N-1>::value };
+};
+
+template<>
+struct template_fibonacci<0> {
+    enum { value = 0 };
+};
+
+template<>
+struct template_fibonacci<1> {
+    enum { value = 1 };
+};
+
+int recursive_fibonacci(int num) {
     if (num == 0) return 0;
     if (num == 1) return 1;
-    return fibonacci(num - 2) + fibonacci(num - 1);
+    return recursive_fibonacci(num - 2) + recursive_fibonacci(num - 1);
 }
 
 std::string read_file(char const* path) {
@@ -63,18 +78,35 @@ int main(int argc, char* argv[]) {
     printf("\n");
     {
         auto start_time = std::chrono::system_clock::now();
-        int result = fibonacci(atoi(num));
+        int result = recursive_fibonacci(atoi(num));
         auto end_time = std::chrono::system_clock::now();
         auto duration = end_time - start_time;
         auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
         auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-        printf("native fibonacci\n");
+        printf("native recursive fibonacci\n");
         printf("result: %u\n",  result);
         printf("ms: %lld\n", ms);
         printf("us: %lld\n", us);
         printf("ns: %lld\n", ns);
     }
+#ifdef FIBONACCI_NUM
+    printf("\n");
+    {
+        auto start_time = std::chrono::system_clock::now();
+        int result = template_fibonacci<FIBONACCI_NUM>::value;
+        auto end_time = std::chrono::system_clock::now();
+        auto duration = end_time - start_time;
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+        printf("native template fibonacci\n");
+        printf("result: %u\n",  result);
+        printf("ms: %lld\n", ms);
+        printf("us: %lld\n", us);
+        printf("ns: %lld\n", ns);
+    }
+#endif
 
     isolate->Dispose();
     v8::V8::Dispose();
