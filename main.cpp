@@ -63,17 +63,55 @@ std::string read_file(char const* path) {
     return buf;
 }
 
-template<typename T>
+enum class Color {
+    RED,
+    GREEN,
+    YELLOW,
+    DEFAULT,
+};
+
+template<Color>
+void color_scope(std::function<void()> func) {
+    func();
+}
+
+template<>
+void color_scope<Color::RED>(std::function<void()> func) {
+    printf("\033[31m");
+    func();
+    printf("\033[00m");
+}
+
+template<>
+void color_scope<Color::GREEN>(std::function<void()> func) {
+    printf("\033[32m");
+    func();
+    printf("\033[00m");
+}
+
+template<>
+void color_scope<Color::YELLOW>(std::function<void()> func) {
+    printf("\033[33m");
+    func();
+    printf("\033[00m");
+}
+
+template<Color color = Color::DEFAULT, typename T>
 void log(char const* name, unsigned int result, T duration) {
     auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
     auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
     auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
-    printf("%s\n", name);
-    printf("result: %u\n",  result);
-    printf("ms: %lld\n", ms);
-    printf("us: %lld\n", us);
-    printf("ns: %lld\n", ns);
+
+    std::function<void()> handle = [&]{
+        printf("%s\n", name);
+        printf("result: %u\n",  result);
+        printf("ms: %lld\n", ms);
+        printf("us: %lld\n", us);
+        printf("ns: %lld\n", ns);
+    };
+    color_scope<color>(handle);
 }
+
 
 int main(int argc, char* argv[]) {
     std::string input = read_file("input.js");
@@ -105,7 +143,7 @@ int main(int argc, char* argv[]) {
             auto start_time = std::chrono::system_clock::now();
             v8::Local<v8::Value> result = script->Run(context_sub).ToLocalChecked();
             auto end_time = std::chrono::system_clock::now();
-            log("v8 recursive fibonacci", result->Uint32Value(), end_time - start_time);
+            log<Color::RED>("v8 recursive fibonacci", result->Uint32Value(), end_time - start_time);
         }
         printf("\n");
         {
@@ -118,7 +156,7 @@ int main(int argc, char* argv[]) {
             auto start_time = std::chrono::system_clock::now();
             v8::Local<v8::Value> result = script->Run(context_sub).ToLocalChecked();
             auto end_time = std::chrono::system_clock::now();
-            log("v8 tail recursive fibonacci", result->Uint32Value(), end_time - start_time);
+            log<Color::RED>("v8 tail recursive fibonacci", result->Uint32Value(), end_time - start_time);
         }
     }
     printf("\n");
@@ -126,21 +164,21 @@ int main(int argc, char* argv[]) {
         auto start_time = std::chrono::system_clock::now();
         int result = recursive_fibonacci(atoi(num));
         auto end_time = std::chrono::system_clock::now();
-        log("native recursive fibonacci", result, end_time - start_time);
+        log<Color::YELLOW>("native recursive fibonacci", result, end_time - start_time);
     }
     printf("\n");
     {
         auto start_time = std::chrono::system_clock::now();
         int result = tail_recursive_fibonacci(atoi(num));
         auto end_time = std::chrono::system_clock::now();
-        log("native tail recursive fibonacci", result, end_time - start_time);
+        log<Color::YELLOW>("native tail recursive fibonacci", result, end_time - start_time);
     }
     printf("\n");
     {
         auto start_time = std::chrono::system_clock::now();
         int result = loop_fibonacci(atoi(num));
         auto end_time = std::chrono::system_clock::now();
-        log("native loop fibonacci", result, end_time - start_time);
+        log<Color::YELLOW>("native loop fibonacci", result, end_time - start_time);
     }
 #ifdef FIBONACCI_NUM
     printf("\n");
@@ -148,7 +186,7 @@ int main(int argc, char* argv[]) {
         auto start_time = std::chrono::system_clock::now();
         int result = template_fibonacci<FIBONACCI_NUM>::value;
         auto end_time = std::chrono::system_clock::now();
-        log("native template fibonacci", result, end_time - start_time);
+        log<Color::YELLOW>("native template fibonacci", result, end_time - start_time);
     }
 #endif
 
