@@ -1,6 +1,7 @@
 #include <chrono>
 #include <cstdio>
 #include <string>
+#include <vector>
 
 #include "libplatform/libplatform.h"
 #include "v8.h"
@@ -24,6 +25,18 @@ int recursive_fibonacci(int num) {
     if (num == 0) return 0;
     if (num == 1) return 1;
     return recursive_fibonacci(num - 2) + recursive_fibonacci(num - 1);
+}
+
+int loop_fibonacci(int num) {
+    if (num == 0) return 0;
+    if (num == 1) return 1;
+    std::vector<int> nums(num+1);
+    nums[0] = 0;
+    nums[1] = 1;
+    for (int i = 2; i < nums.size(); i++) {
+        nums[i] = nums[i - 2] + nums[i - 1];
+    }
+    return nums.back();
 }
 
 std::string read_file(char const* path) {
@@ -85,6 +98,21 @@ int main(int argc, char* argv[]) {
         auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
         printf("native recursive fibonacci\n");
+        printf("result: %u\n",  result);
+        printf("ms: %lld\n", ms);
+        printf("us: %lld\n", us);
+        printf("ns: %lld\n", ns);
+    }
+    printf("\n");
+    {
+        auto start_time = std::chrono::system_clock::now();
+        int result = loop_fibonacci(atoi(num));
+        auto end_time = std::chrono::system_clock::now();
+        auto duration = end_time - start_time;
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+        printf("native loop fibonacci\n");
         printf("result: %u\n",  result);
         printf("ms: %lld\n", ms);
         printf("us: %lld\n", us);
