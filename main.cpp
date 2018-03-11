@@ -27,6 +27,19 @@ int recursive_fibonacci(int num) {
     return recursive_fibonacci(num - 2) + recursive_fibonacci(num - 1);
 }
 
+int tail_recursive_fibonacci_impl(int, int, int);
+int tail_recursive_fibonacci(int num) {
+    if (num == 0) return 0;
+    if (num == 1) return 1;
+    return tail_recursive_fibonacci_impl(num, 0, 1);
+}
+
+int tail_recursive_fibonacci_impl(int num, int first, int second) {
+    int result = first + second;
+    if (num == 2) return result;
+    return tail_recursive_fibonacci_impl(num - 1, second, result);
+}
+
 int loop_fibonacci(int num) {
     if (num == 0) return 0;
     if (num == 1) return 1;
@@ -98,6 +111,21 @@ int main(int argc, char* argv[]) {
         auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
         auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
         printf("native recursive fibonacci\n");
+        printf("result: %u\n",  result);
+        printf("ms: %lld\n", ms);
+        printf("us: %lld\n", us);
+        printf("ns: %lld\n", ns);
+    }
+    printf("\n");
+    {
+        auto start_time = std::chrono::system_clock::now();
+        int result = tail_recursive_fibonacci(atoi(num));
+        auto end_time = std::chrono::system_clock::now();
+        auto duration = end_time - start_time;
+        auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+        auto us = std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
+        auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration).count();
+        printf("native tail recursive fibonacci\n");
         printf("result: %u\n",  result);
         printf("ms: %lld\n", ms);
         printf("us: %lld\n", us);
