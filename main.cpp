@@ -125,6 +125,8 @@ int main(int argc, char* argv[]) {
     v8::V8::Initialize();
 
     v8::Isolate::CreateParams create_params;
+    v8::StartupData snapshot_data = v8::V8::CreateSnapshotDataBlob(function_source.c_str());
+    create_params.snapshot_blob = &snapshot_data;
     create_params.array_buffer_allocator =
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
     v8::Isolate* isolate = v8::Isolate::New(create_params);
@@ -133,12 +135,6 @@ int main(int argc, char* argv[]) {
         v8::HandleScope handle_scope(isolate);
         v8::Local<v8::Context> context = v8::Context::New(isolate);
         v8::Context::Scope context_scope(context);
-        v8::Local<v8::String> function_source_object =
-            v8::String::NewFromUtf8(isolate, function_source.c_str(), v8::NewStringType::kNormal)
-                .ToLocalChecked();
-        v8::Local<v8::Script> function_script = v8::Script::Compile(context, function_source_object)
-            .ToLocalChecked();
-        function_script->Run(context).ToLocalChecked();
         {
             std::string execution_source = "recursive_fibonacci(" + std::string(num) + ");";
             v8::Local<v8::String> execution_source_object =
