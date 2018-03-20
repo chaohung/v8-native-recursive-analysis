@@ -112,6 +112,11 @@ void log(char const* name, unsigned int result, T duration) {
     color_scope<color>(handle);
 }
 
+v8::Local<v8::Script> create_script(char const* source, v8::Isolate* isolate) {
+    v8::Local<v8::String> execution_source_object =
+        v8::String::NewFromUtf8(isolate, source, v8::NewStringType::kNormal).ToLocalChecked();
+    return v8::Script::Compile(isolate->GetCurrentContext(), execution_source_object).ToLocalChecked();
+}
 
 int main(int argc, char* argv[]) {
     std::string function_source = read_file("function.js");
@@ -137,26 +142,18 @@ int main(int argc, char* argv[]) {
         v8::Context::Scope context_scope(context);
         {
             std::string execution_source = "recursive_fibonacci(" + std::string(num) + ");";
-            v8::Local<v8::String> execution_source_object =
-                v8::String::NewFromUtf8(isolate, execution_source.c_str(), v8::NewStringType::kNormal)
-                    .ToLocalChecked();
-            v8::Local<v8::Script> execution_script = v8::Script::Compile(context, execution_source_object)
-                .ToLocalChecked();
+            auto script = create_script(execution_source.c_str(), isolate);
             auto start_time = std::chrono::system_clock::now();
-            v8::Local<v8::Value> result = execution_script->Run(context).ToLocalChecked();
+            v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
             auto end_time = std::chrono::system_clock::now();
             log<Color::RED>("v8 recursive fibonacci", result->Uint32Value(), end_time - start_time);
         }
         printf("\n");
         {
             std::string execution_source = "tail_recursive_fibonacci(" + std::string(num) + ");";
-            v8::Local<v8::String> execution_source_object =
-                v8::String::NewFromUtf8(isolate, execution_source.c_str(), v8::NewStringType::kNormal)
-                    .ToLocalChecked();
-            v8::Local<v8::Script> execution_script = v8::Script::Compile(context, execution_source_object)
-                .ToLocalChecked();
+            auto script = create_script(execution_source.c_str(), isolate);
             auto start_time = std::chrono::system_clock::now();
-            v8::Local<v8::Value> result = execution_script->Run(context).ToLocalChecked();
+            v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
             auto end_time = std::chrono::system_clock::now();
             log<Color::RED>("v8 tail recursive fibonacci", result->Uint32Value(), end_time - start_time);
         }
